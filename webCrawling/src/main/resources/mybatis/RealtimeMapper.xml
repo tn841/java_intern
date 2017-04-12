@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.test.mapper.RealtimeMapper">
+	<!-- 
+		realtime_no;
+		realtime_keyword;
+		realtime_url;
+		realtime_rank;
+		realtime_timestamp;
+	 -->
+	<resultMap type="com.test.realtime.Realtime" id="realtime_rm">
+		<result property="realtime_no" 		column="r_no"/>
+		<result property="realtime_keyword" column="r_keyword"/>
+		<result property="realtime_url" 	column="r_url"/>
+		<result property="realtime_rank" 	column="r_rank"/>
+		<result property="realtime_timestamp" 	column="r_timestamp"/>
+	</resultMap>
+	
+	
+	<select id="select_recent"
+			resultMap="realtime_rm">
+		SELECT * FROM member WHERE no = #{member_no}
+	</select>
+	
+	
+	<insert	id="insert_naver"
+			parameterType="com.test.realtime.Realtime"
+			useGeneratedKeys="true"
+			keyProperty="r_no">
+		INSERT INTO realtime_naver (r_keyword, r_url, r_rank, r_timestamp) 
+		VALUES(#{realtime_keyword}, #{realtime_url}, #{realtime_rank}, #{realtime_timestamp})		
+	</insert>
+	
+	<insert id="insert_daum"
+			parameterType="com.test.realtime.Realtime"
+			useGeneratedKeys="true"
+			keyProperty="r_no">
+		INSERT INTO realtime_daum (r_keyword, r_url, r_rank, r_timestamp) 
+		VALUES(#{realtime_keyword}, #{realtime_url}, #{realtime_rank}, #{realtime_timestamp})		
+	</insert>
+	
+	<insert id="insert_zum"
+			parameterType="com.test.realtime.Realtime"
+			useGeneratedKeys="true"
+			keyProperty="r_no">
+		INSERT INTO realtime_zum (r_keyword, r_url, r_rank, r_timestamp)
+		VALUES( #{realtime_keyword}, #{realtime_url}, #{realtime_rank}, #{realtime_timestamp} )		
+	</insert>		
+
+	<select id="select_naver_last"
+			resultMap="realtime_rm">
+		SELECT * FROM realtime_naver ORDER BY r_timestamp DESC, r_rank limit 20
+	</select>
+	
+	<select id="select_daum_last"
+			resultMap="realtime_rm">
+		SELECT * FROM realtime_daum ORDER BY r_timestamp DESC, r_rank limit 10
+	</select>
+	
+	<select id="select_zum_last"
+			resultMap="realtime_rm">
+		SELECT * FROM realtime_zum ORDER BY r_timestamp DESC, r_rank limit 20
+	</select>
+	
+	<select id="select_keyword_count"
+			parameterType="hashmap"
+			resultType="hashmap">
+		SELECT r_keyword, count(*) c
+		FROM
+		<choose>
+			<when test="portal == 'naver'">realtime_naver</when>
+			<when test="portal == 'daum'">realtime_daum</when>
+			<when test="portal == 'zum'">realtime_zum</when>
+		</choose>
+		WHERE r_timestamp BETWEEN #{period} AND #{e_date}
+		GROUP BY r_keyword
+		ORDER BY c DESC
+		LIMIT 10
+	</select>
+	
+	
+	<select id="select_line_chart_data"
+			parameterType="hashmap"
+			resultMap="realtime_rm">
+		SELECT *
+		FROM 
+		<choose>
+			<when test="table_name == 'naver'">realtime_naver</when>
+			<when test="table_name == 'daum'">realtime_daum</when>
+			<when test="table_name == 'zum'">realtime_zum</when>
+		</choose>
+		
+		WHERE r_rank = #{r_rank, javaType=int, jdbcType=NUMERIC}
+		group by date(r_timestamp), hour(r_timestamp), floor(minute(r_timestamp)/#{interval, javaType=int, jdbcType=NUMERIC})
+		order by r_timestamp DESC
+		limit #{limit, javaType=int, jdbcType=NUMERIC}
+	</select>
+	
+	<select id="select_by_keyword"
+			parameterType="hashmap"
+			resultMap="realtime_rm">
+		SELECT *
+		FROM
+		<choose>
+			<when test="portal == 'naver'">realtime_naver</when>
+			<when test="portal == 'daum'">realtime_daum</when>
+			<when test="portal == 'zum'">realtime_zum</when>
+		</choose>		
+		WHERE r_keyword LIKE #{keyword}
+		GROUP BY date(r_timestamp), hour(r_timestamp), floor(minute(r_timestamp)/#{interval})
+		ORDER BY r_timestamp DESC
+		
+	</select>
+	
+	<select id="select_r_keyword"
+			parameterType="hashmap"
+			resultMap="realtime_rm">
+		SELECT *
+		FROM
+		<choose>
+			<when test="portal == 'naver'">realtime_naver</when>
+			<when test="portal == 'daum'">realtime_daum</when>
+			<when test="portal == 'zum'">realtime_zum</when>
+		</choose>
+		ORDER BY r_timestamp DESC, r_rank 
+		<choose>
+			<when test="portal == 'daum'">LIMIT 10</when>
+			<otherwise>LIMIT 20</otherwise>
+		</choose>
+	</select>
+	
+</mapper>

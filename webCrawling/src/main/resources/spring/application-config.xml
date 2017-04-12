@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-3.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    
+    <!-- Uncomment and add your base-package here:
+         <context:component-scan
+            base-package="org.springframework.samples.service"/>  -->
+    
+    <!-- properties 파일 읽기 -->
+   	<context:property-placeholder location="classpath:spring/jdbc.properties"/>
+    
+	<!-- JDBC 연결을 처리하는 DATASOURCE (아파치에서 제공하는 DBCP 이용) -->
+	<bean 	id="datasource" 
+			class="org.apache.tomcat.dbcp.dbcp2.BasicDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassName}"></property>
+		<property name="url" value="${jdbc.url}"></property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	
+	<!-- SqlSeesionFactory Bean -->
+	<bean	id="sqlSessionFactory"
+			class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+		<property name="dataSource" ref="datasource"></property>
+		<property name="mapperLocations">
+			<list>
+				<value>classpath:mybatis/*.xml</value>
+			</list>
+		</property>
+	</bean>
+	
+	
+	<!-- Member DI -->
+	<!-- MapperFactroyBean -->
+	<bean	id="memberMapper"
+			class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.test.mapper.MemberMapper"></property>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+	</bean>
+	
+	<bean	id="memberDao"
+			class="com.test.member.MemberDaoImpl">
+		<property name="memberMapper" ref="memberMapper"></property>
+	</bean>
+	
+	
+	
+	<!-- Realtime DI -->
+	<bean	id="RealtimeMapper"
+			class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.test.mapper.RealtimeMapper"></property>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>		
+	</bean>
+	
+	<bean	id="RealtimeDao"
+			class="com.test.realtime.RealtimeDaoImpl">
+		<property name="realtimeMapper" ref="RealtimeMapper"></property>		
+	</bean>
+	
+	<!-- Borad DI -->
+	<bean	id="postMapper"
+			class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="com.test.mapper.PostMapper"></property>
+		<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>		
+	</bean>
+	<bean	id="PostDao"
+			class="com.test.post.PostDaoImpl">
+		<property name="postMapper" ref="postMapper"></property>
+	</bean>
+	
+	
+	 <!-- schedule 관련 -->
+	<task:annotation-driven />
+	<bean id="scheduler" class="com.test.scheduler.SampleScheduler">
+		<property name="realtimeDao" ref="RealtimeDao"></property>
+	</bean>
+
+</beans>

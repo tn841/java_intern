@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.test.mapper.MemberMapper">
+
+	<resultMap type="com.test.member.Member" id="member_list_RM">
+		<result property="member_no" column="no"/>
+		<result property="member_name" column="name"/>
+		<result property="member_age" column="age"/>
+	</resultMap>
+	
+	
+	<select id="selectAll"
+			resultMap="member_list_RM">
+		SELECT * FROM member		
+	</select>
+	
+	<select id="select_by_no"
+			parameterType="java.lang.Integer"
+			resultMap="member_list_RM">
+		SELECT * FROM member WHERE no = #{member_no}
+	</select>
+	
+	
+	
+	<select id="select_last_no"
+			resultType="java.lang.Integer">
+		SELECT max(no) FROM member		
+	</select>
+	
+	<insert	id="insert_member"
+			parameterType="Member"
+			useGeneratedKeys="true"
+			keyProperty="no">
+		INSERT INTO member (name, age) VALUES(#{member_name}, #{member_age})		
+	</insert>
+	
+	<update id="update_member"
+			parameterType="Member">
+		UPDATE member SET name=#{member_name}, age=#{member_age} WHERE no=#{member_no}		
+	</update>
+	
+	
+	<delete id="delete_member"
+			parameterType="java.lang.Integer">
+		DELETE FROM member WHERE no=#{aaa}
+	</delete>
+</mapper>

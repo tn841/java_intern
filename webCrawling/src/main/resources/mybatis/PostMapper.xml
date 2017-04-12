@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.test.mapper.PostMapper">
+
+	<resultMap type="com.test.post.Post" id="post_RM">
+		<result property="p_no" column="p_no"/>
+		<result property="p_title" column="p_title"/>
+		<result property="p_content" column="p_content"/>
+		<result property="p_writer" column="p_wirter"/>
+		<result property="p_date" column="p_datetime"/>
+	</resultMap>
+	
+	
+	<insert	id="insert_post"
+			parameterType="com.test.post.Post"
+			useGeneratedKeys="true"
+			keyProperty="p_no">
+		INSERT INTO post (p_title, p_content, p_writer, p_datetime) 
+		VALUES(#{p_title}, #{p_content}, #{p_writer}, #{p_date})		
+	</insert>
+	
+	<update id="update_post"
+			parameterType="Member">
+		UPDATE post 
+		SET p_title=#{p_title}, p_content=#{p_content} WHERE p_no=#{p_no}
+	</update>
+	
+	
+	<delete id="delete_post"
+			parameterType="java.lang.Integer">
+		DELETE FROM post WHERE p_no=#{aaa}
+	</delete>
+	
+	<select id="select_by_no"
+			resultMap="post_RM"
+			parameterType="int">
+		SELECT * 
+		FROM post
+		where p_no = #{aaa}
+	</select>
+
+	<select id="select_all"
+			resultMap="post_RM">
+		SELECT *
+		FROM post
+		ORDER BY p_no DESC
+	</select>
+	
+	
+	<!-- page nation 관련 -->
+	<select id="select_total_post_count"
+			resultType="int">
+		select count(*) cnt from post
+	</select>
+	
+	<select id="select_post_by_per_page"
+			parameterType="hashmap"
+			resultMap="post_RM">
+		select * 
+		from post order by p_no DESC 
+		limit #{s_page}, #{e_page}
+	</select>
+</mapper>
